@@ -2,4 +2,3 @@
 /node_modules
 .history
 .DS_store
-/output/*
