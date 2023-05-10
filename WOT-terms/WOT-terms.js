@@ -4,7 +4,9 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 
 const url = 'https://weboftrust.github.io/WOT-terms/sitemap.xml';
-const result = 'searchIndex.js'(async () => {
+const result = './output/WOT-terms.js';
+
+(async () => {
   // Fetch and parse the sitemap.xml file
   console.log('Fetching sitemap...');
   const sitemapUrl = url;
@@ -26,7 +28,11 @@ const result = 'searchIndex.js'(async () => {
     // Navigate to the page URL and get all paragraph nodes
     await page.goto(pageUrl);
     const paragraphs = await page.$$eval('p', (elements) =>
-      elements.map((el) => el.textContent)
+      // Full index:
+      // elements.map((el) => el.textContent)
+
+      // Partial index for testing:
+      elements.map((el) => el.textContent).slice(0, 3)
     );
 
     // Create an entry for this URL with the text content of all the paragraphs
