@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 
 const url = 'https://weboftrust.github.io/WOT-terms/sitemap.xml';
-const result = './output/WOT-terms.js';
+const result = './output/WOT-terms.json';
 
 (async () => {
   // Fetch and parse the sitemap.xml file
@@ -46,9 +46,7 @@ const result = './output/WOT-terms.js';
 
   // Write the entries array to a file
   console.log(`Writing search index to file...`);
-  const fileContent = `const searchIndex = ${JSON.stringify(
-    entries
-  )};\nmodule.exports = searchIndex;`;
+  const fileContent = `${JSON.stringify(entries)}`;
   fs.writeFileSync(result, fileContent);
 
   console.log(`Indexed ${entries.length} pages`);

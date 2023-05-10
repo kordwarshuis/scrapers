@@ -48,10 +48,8 @@ import fs from 'fs';
 
   // Write the entries array to a file
   console.log(`Writing search index to file...`);
-  const fileContent = `const searchIndex = ${JSON.stringify(
-    entries
-  )};\nmodule.exports = searchIndex;`;
-  fs.writeFileSync('./output/acdc-html.js', fileContent);
+  const fileContent = `${JSON.stringify(entries)}`;
+  fs.writeFileSync('./output/acdc-html.json', fileContent);
 
   console.log(`Indexed ${entries.length} pages`);
   console.log(`Search index written to output`);
