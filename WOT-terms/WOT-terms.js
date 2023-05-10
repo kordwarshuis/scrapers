@@ -21,25 +21,39 @@ const result = './output/WOT-terms.json';
   // Iterate over each URL in the sitemap and create an array of entries for each URL
   const entries = [];
   console.log('Indexing pages...');
-  for (const url of sitemap.urlset.url) {
+
+  // Full index:
+  // for (const url of sitemap.urlset.url) {
+
+  // Partial index for testing:
+  for (const url of sitemap.urlset.url.slice(100, 103)) {
     const pageUrl = url.loc[0];
     console.log(`Indexing ${pageUrl}`);
 
     // Navigate to the page URL and get all paragraph nodes
     await page.goto(pageUrl);
     const paragraphs = await page.$$eval('p', (elements) =>
-      // Full index:
-      // elements.map((el) => el.textContent)
-
-      // Partial index for testing:
-      elements.map((el) => el.textContent).slice(0, 3)
+      elements.map((el) => el.textContent)
     );
+
+    // await page.waitForSelector('ul li.breadcrumbs__item span');
+
+    // Find the breadcrumbs element and all its child <li> elements
+    const breadcrumbs = await page.$$eval('.breadcrumbs__link', (nodes) =>
+      nodes.map((node) => node.textContent.trim())
+    );
+
+    console.log(breadcrumbs);
 
     // Create an entry for this URL with the text content of all the paragraphs
     const entry = {
       url: pageUrl,
-      text: paragraphs.join('\n'),
+      content: paragraphs.join('\n'),
       timestamp: new Date().toISOString(),
+      'hierarchy.lvl0': breadcrumbs[0],
+      'hierarchy.lvl1': breadcrumbs[1],
+      'hierarchy.lvl2': breadcrumbs[2],
+      'hierarchy.lvl3': breadcrumbs[3],
     };
     entries.push(entry);
   }
