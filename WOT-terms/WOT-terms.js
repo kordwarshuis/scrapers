@@ -23,17 +23,16 @@ const result = './output/WOT-terms.json';
   console.log('Indexing pages...');
 
   // Full index:
-  // for (const url of sitemap.urlset.url) {
-
-  // Partial index for testing:
-  for (const url of sitemap.urlset.url.slice(100, 103)) {
+  for (const url of sitemap.urlset.url) {
+    // Partial index for testing:
+    // for (const url of sitemap.urlset.url.slice(100, 150)) {
     const pageUrl = url.loc[0];
     console.log(`Indexing ${pageUrl}`);
 
     // Navigate to the page URL and get all paragraph nodes
     await page.goto(pageUrl);
     const paragraphs = await page.$$eval('p', (elements) =>
-      elements.map((el) => el.textContent)
+      elements.map((el) => el.textContent.trim())
     );
 
     // await page.waitForSelector('ul li.breadcrumbs__item span');
@@ -45,17 +44,32 @@ const result = './output/WOT-terms.json';
 
     console.log(breadcrumbs);
 
-    // Create an entry for this URL with the text content of all the paragraphs
-    const entry = {
-      url: pageUrl,
-      content: paragraphs.join('\n'),
-      timestamp: new Date().toISOString(),
-      'hierarchy.lvl0': breadcrumbs[0],
-      'hierarchy.lvl1': breadcrumbs[1],
-      'hierarchy.lvl2': breadcrumbs[2],
-      'hierarchy.lvl3': breadcrumbs[3],
-    };
-    entries.push(entry);
+    const articleExists = await page.$('article');
+    let knowledgeLevel;
+    // Get the value of the data-level attribute from the article element
+    if (articleExists) {
+      knowledgeLevel = await page.$eval('article', (element) => {
+        return element.getAttribute('data-level');
+      });
+      console.log(knowledgeLevel);
+    } else {
+      console.log('No article element found.');
+    }
+
+    // Create an entry for each paragraph with its own breadcrumbs
+    for (const paragraph of paragraphs) {
+      const entry = {
+        url: pageUrl,
+        content: paragraph,
+        timestamp: new Date().toISOString(),
+        'hierarchy.lvl0': breadcrumbs[0],
+        'hierarchy.lvl1': breadcrumbs[1],
+        'hierarchy.lvl2': breadcrumbs[2],
+        'hierarchy.lvl3': breadcrumbs[3],
+        knowledgeLevel: knowledgeLevel,
+      };
+      entries.push(entry);
+    }
   }
 
   // Write the entries array to a file
