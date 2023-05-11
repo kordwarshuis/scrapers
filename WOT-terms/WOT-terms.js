@@ -60,13 +60,13 @@ const result = './output/WOT-terms.json';
     for (const paragraph of paragraphs) {
       const entry = {
         url: pageUrl,
-        content: paragraph,
-        timestamp: new Date().toISOString(),
-        'hierarchy.lvl0': breadcrumbs[0],
-        'hierarchy.lvl1': breadcrumbs[1],
-        'hierarchy.lvl2': breadcrumbs[2],
-        'hierarchy.lvl3': breadcrumbs[3],
-        knowledgeLevel: knowledgeLevel,
+        content: paragraph || '',
+        timestamp: new Date().toISOString() || '',
+        'hierarchy.lvl0': breadcrumbs[0] || '',
+        'hierarchy.lvl1': breadcrumbs[1] || '',
+        'hierarchy.lvl2': breadcrumbs[2] || '',
+        'hierarchy.lvl3': breadcrumbs[3] || '',
+        knowledgeLevel: knowledgeLevel || '',
       };
       entries.push(entry);
     }
