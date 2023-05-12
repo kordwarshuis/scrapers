@@ -25,15 +25,21 @@ const result = './output/WOT-terms.json';
   // Full index:
   for (const url of sitemap.urlset.url) {
     // Partial index for testing:
-    // for (const url of sitemap.urlset.url.slice(100, 150)) {
+    // for (const url of sitemap.urlset.url.slice(100, 113)) {
     const pageUrl = url.loc[0];
     console.log(`Indexing ${pageUrl}`);
 
     // Navigate to the page URL and get all paragraph nodes
     await page.goto(pageUrl);
-    const paragraphs = await page.$$eval('p', (elements) =>
-      elements.map((el) => el.textContent.trim())
+    const paragraphs = await page.$$eval(
+      'article p, article markdown h1, article markdown h2, article markdown h3, article markdown h4, article markdown h5, article markdown a, article markdown li',
+      (elements) =>
+        elements.map((el) => ({
+          text: el.textContent.trim(),
+          tag: el.tagName.toLowerCase(),
+        }))
     );
+    console.log('paragraphs: ', paragraphs);
 
     // await page.waitForSelector('ul li.breadcrumbs__item span');
 
@@ -60,7 +66,8 @@ const result = './output/WOT-terms.json';
     for (const paragraph of paragraphs) {
       const entry = {
         url: pageUrl,
-        content: paragraph || '',
+        content: paragraph.text || '',
+        tag: paragraph.tag || '',
         timestamp: new Date().toISOString() || '',
         'hierarchy.lvl0': breadcrumbs[0] || '',
         'hierarchy.lvl1': breadcrumbs[1] || '',
