@@ -1,19 +1,17 @@
 import puppeteer from 'puppeteer';
-import xml2js from 'xml2js';
-import fetch from 'node-fetch';
-import fs from 'fs';
+import createOutput from '../modules/createOutput.js';
+import createInput from '../modules/createInput.js';
+import writeToFile from '../modules/writeToFile.js';
 
 const url = 'https://weboftrust.github.io/WOT-terms/sitemap.xml';
-const result = './output/WOT-terms.json';
+const result = '../output/WOT-terms.json';
 
 (async () => {
-  // Fetch and parse the sitemap.xml file
-  console.log('Fetching sitemap...');
-  const sitemapUrl = url;
-  const sitemapResponse = await fetch(sitemapUrl);
-  const sitemapXml = await sitemapResponse.text();
-  const sitemap = await xml2js.parseStringPromise(sitemapXml);
-  console.log(`Found ${sitemap.urlset.url.length} URLs in sitemap`);
+  const sitemap = await createInput({
+    sourceType: 'remoteXMLsitemap',
+    sourcePath: url,
+  });
+  console.log('sitemap: ', sitemap);
 
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
@@ -23,15 +21,15 @@ const result = './output/WOT-terms.json';
   console.log('Indexing pages...');
 
   // Full index:
-  for (const url of sitemap.urlset.url) {
-    // Partial index for testing:
-    // for (const url of sitemap.urlset.url.slice(100, 113)) {
+  // for (const url of sitemap.urlset.url) {
+  // Partial index for testing:
+  for (const url of sitemap.urlset.url.slice(100, 103)) {
     const pageUrl = url.loc[0];
     console.log(`Indexing ${pageUrl}`);
 
     // Navigate to the page URL and get all paragraph nodes
     await page.goto(pageUrl);
-    const paragraphs = await page.$$eval(
+    const elements = await page.$$eval(
       'article p, article markdown h1, article markdown h2, article markdown h3, article markdown h4, article markdown h5, article markdown a, article markdown li',
       (elements) =>
         elements.map((el) => ({
@@ -39,7 +37,7 @@ const result = './output/WOT-terms.json';
           tag: el.tagName.toLowerCase(),
         }))
     );
-    console.log('paragraphs: ', paragraphs);
+    console.log('elements: ', elements);
 
     // await page.waitForSelector('ul li.breadcrumbs__item span');
 
@@ -62,30 +60,20 @@ const result = './output/WOT-terms.json';
       console.log('No article element found.');
     }
 
-    // Create an entry for each paragraph with its own breadcrumbs
-    for (const paragraph of paragraphs) {
-      const entry = {
-        url: pageUrl,
-        content: paragraph.text || '',
-        tag: paragraph.tag || '',
-        timestamp: new Date().toISOString() || '',
-        'hierarchy.lvl0': breadcrumbs[0] || '',
-        'hierarchy.lvl1': breadcrumbs[1] || '',
-        'hierarchy.lvl2': breadcrumbs[2] || '',
-        'hierarchy.lvl3': breadcrumbs[3] || '',
-        knowledgeLevel: knowledgeLevel || '',
-      };
-      entries.push(entry);
-    }
+    entries.push(
+      createOutput({
+        pageUrl,
+        elements: elements,
+        hierarchyLvl0: breadcrumbs[0],
+        hierarchyLvl1: breadcrumbs[1],
+        hierarchyLvl2: breadcrumbs[2],
+        hierarchyLvl3: breadcrumbs[3],
+        knowledgeLevel,
+      })
+    );
   }
 
-  // Write the entries array to a file
-  console.log(`Writing search index to file...`);
-  const fileContent = `${JSON.stringify(entries)}`;
-  fs.writeFileSync(result, fileContent);
-
-  console.log(`Indexed ${entries.length} pages`);
-  console.log(`Search index written to ${result}`);
+  writeToFile(entries, result);
 
   await browser.close();
 })();
