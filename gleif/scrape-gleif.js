@@ -11,7 +11,6 @@ const result = '../output/gleif.json';
     sourceType: 'localXMLsitemap',
     sourcePath: filePath,
   });
-  console.log('sitemap: ', sitemap);
 
   const browser = await puppeteer.launch();
   const page = await browser.newPage();

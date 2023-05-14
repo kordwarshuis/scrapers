@@ -11,7 +11,6 @@ const result = '../output/WOT-terms.json';
     sourceType: 'remoteXMLsitemap',
     sourcePath: url,
   });
-  console.log('sitemap: ', sitemap);
 
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
