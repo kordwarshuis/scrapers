@@ -1,35 +1,17 @@
 import puppeteer from 'puppeteer';
-import xml2js from 'xml2js';
-import fetch from 'node-fetch';
-import fs from 'fs';
+import createOutput from '../modules/createOutput.js';
+import createInput from '../modules/createInput.js';
+import writeToFile from '../modules/writeToFile.js';
 
-// specify the file path
-const filePath = 'sitemap2.xml';
-
-// read the file contents synchronously
-let fileContents = fs.readFileSync(filePath, 'utf-8');
-
-// fileContents = fileContents
-//   .replace(/[\n\r]/g, '\\n')
-//   .replace(/&/g, '&amp;')
-//   .replace(/-/g, '&#45;');
-
-// var cleanedString = fileContents.replace(/[\n]/g, '');
-var cleanedString = fileContents;
-
-// log the contents of the file
-// console.log(fileContents);
-
-// var cleanedString = sitemapXml.replace('\ufeff', '');
-// var cleanedString = fileContents;
-console.log('cleanedString: ', cleanedString);
+const filePath = '../output/gleif-sitemap.xml';
 const result = '../output/gleif.json';
 
 (async () => {
-  // const sitemap = await xml2js.parseStringPromise(sitemapXml);
-  const sitemap = await xml2js.parseStringPromise(cleanedString);
-
-  console.log(`Found ${sitemap.urlset.url.length} URLs in sitemap`);
+  const sitemap = await createInput({
+    sourceType: 'localXMLsitemap',
+    sourcePath: filePath,
+  });
+  console.log('sitemap: ', sitemap);
 
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
@@ -39,50 +21,40 @@ const result = '../output/gleif.json';
   console.log('Indexing pages...');
 
   // Full index:
-  for (const url of sitemap.urlset.url) {
-    try {
-      // Partial index for testing:
-      // for (const url of sitemap.urlset.url.slice(0, 3)) {
-      const pageUrl = url.loc[0];
-      console.log(`Indexing ${pageUrl}`);
+  // for (const url of sitemap.urlset.url) {
+  // Partial index for testing:
+  for (const url of sitemap.urlset.url.slice(0, 3)) {
+    const pageUrl = url.loc[0];
+    console.log(`Indexing ${pageUrl}`);
 
+    try {
       // Navigate to the page URL and get all paragraph nodes
       await page.goto(pageUrl);
-      const paragraphs = await page.$$eval('p', (elements) =>
+      const elements = await page.$$eval('.content p', (elements) =>
         elements.map((el) => ({
           text: el.textContent.trim(),
           tag: el.tagName.toLowerCase(),
         }))
       );
-      console.log('paragraphs: ', paragraphs);
+      console.log('elements: ', elements);
 
-      // Create an entry for each paragraph with its own breadcrumbs
-      for (const paragraph of paragraphs) {
-        const entry = {
-          url: pageUrl,
-          content: paragraph.text || '',
-          tag: paragraph.tag || '',
-          timestamp: new Date().toISOString() || '',
-          'hierarchy.lvl0': '',
-          'hierarchy.lvl1': '',
-          'hierarchy.lvl2': '',
-          'hierarchy.lvl3': '',
+      entries.push(
+        createOutput({
+          pageUrl,
+          elements: elements,
+          hierarchyLvl0: '',
+          hierarchyLvl1: 'Gleif website',
+          hierarchyLvl2: '',
+          hierarchyLvl3: '',
           knowledgeLevel: '',
-        };
-        entries.push(entry);
-      }
-    } catch (error) {
-      console.log(`Error indexing ${pageUrl}: ${error.message}`);
+        })
+      );
+    } catch (err) {
+      console.error(`Error processing page ${pageUrl}: ${err}`);
     }
   }
 
-  // Write the entries array to a file
-  console.log(`Writing search index to file...`);
-  const fileContent = `${JSON.stringify(entries)}`;
-  fs.writeFileSync(result, fileContent);
-
-  console.log(`Indexed ${entries.length} pages`);
-  console.log(`Search index written to ${result}`);
+  writeToFile(entries, result);
 
   await browser.close();
 })();
