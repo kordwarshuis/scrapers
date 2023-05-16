@@ -42,6 +42,7 @@ const result = '../output/acdc.json';
       console.log('elements: ', elements);
 
       let output = createOutput({
+        siteName,
         pageUrl,
         elements: elements,
         hierarchyLvl0: '',

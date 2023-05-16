@@ -39,6 +39,7 @@ const result = '../output/gleif.json';
       console.log('elements: ', elements);
 
       let output = createOutput({
+        siteName,
         pageUrl,
         elements: elements,
         hierarchyLvl0: '',
