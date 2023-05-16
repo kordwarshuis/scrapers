@@ -30,7 +30,7 @@ const result = '../output/WOT-terms.json';
     // Navigate to the page URL and get all paragraph nodes
     await page.goto(pageUrl);
     const elements = await page.$$eval(
-      'article .markdown p, article .markdown h1, article .markdown h2, article .markdown h3, article .markdown h4, article .markdown h5, article .markdown a, article .markdown li',
+      'article .markdown p, article .markdown h1, article .markdown h2, article .markdown h3, article .markdown h4, article .markdown h5, article .markdown li',
       (elements) =>
         elements.map((el) => ({
           text: el.textContent.trim(),
