@@ -3,6 +3,7 @@ import createOutput from '../modules/createOutput.js';
 import createInput from '../modules/createInput.js';
 import writeToFile from '../modules/writeToFile.js';
 
+const siteName = 'Gleif website';
 const filePath = '../output/gleif-sitemap.xml';
 const result = '../output/gleif.json';
 
@@ -20,9 +21,9 @@ const result = '../output/gleif.json';
   console.log('Indexing pages...');
 
   // Full index:
-  // for (const url of sitemap.urlset.url) {
-  // Partial index for testing:
-  for (const url of sitemap.urlset.url.slice(0, 3)) {
+  for (const url of sitemap.urlset.url) {
+    // Partial index for testing:
+    // for (const url of sitemap.urlset.url.slice(0, 3)) {
     const pageUrl = url.loc[0];
     console.log(`Indexing ${pageUrl}`);
 
@@ -37,17 +38,20 @@ const result = '../output/gleif.json';
       );
       console.log('elements: ', elements);
 
-      entries.push(
-        createOutput({
-          pageUrl,
-          elements: elements,
-          hierarchyLvl0: '',
-          hierarchyLvl1: 'Gleif website',
-          hierarchyLvl2: '',
-          hierarchyLvl3: '',
-          knowledgeLevel: '',
-        })
-      );
+      let output = createOutput({
+        pageUrl,
+        elements: elements,
+        hierarchyLvl0: '',
+        hierarchyLvl1: 'Gleif website',
+        hierarchyLvl2: '',
+        hierarchyLvl3: '',
+        knowledgeLevel: '',
+        knowledgeLevel: '',
+      });
+
+      output.forEach((entry) => {
+        entries.push(entry);
+      });
     } catch (err) {
       console.error(`Error processing page ${pageUrl}: ${err}`);
     }
