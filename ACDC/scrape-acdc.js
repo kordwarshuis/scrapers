@@ -32,7 +32,7 @@ const result = '../output/acdc.json';
       // Navigate to the page URL and get all paragraph nodes
       await page.goto(pageUrl);
       const elements = await page.$$eval(
-        '.markdown-body p, .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body a, .markdown-body li',
+        '.markdown-body p, .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body li',
         (elements) =>
           elements.map((el) => ({
             text: el.textContent.trim(),
